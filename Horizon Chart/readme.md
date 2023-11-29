@@ -38,7 +38,7 @@ Organize charts in a grid or another systematic arrangement for easy comparison 
 Add features like tooltips for detailed daily values or zoom capabilities to focus on specific periods.
 
 ## Demo
-![image](https://github.com/Yang-Shun-Yu/videos/blob/master/brushable2.png)
+![image](https://github.com/Yang-Shun-Yu/Data-Visualization-Project/blob/master/Horizon%20Chart/horizon.png)
 
 
 
