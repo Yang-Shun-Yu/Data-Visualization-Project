@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<head>
+    <title>HW08-Sankey Diagram</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" integrity="sha512-uto9mlQzrs59VwILcLiRYeLKPPbS/bT71da/OEBYEwcdNUk8jYIy+D176RYoop1Da+f9mvkYrmj5MCLZWEtQuA==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha512-M5KW3ztuIICmVIhjSqXe01oV2bpe248gOxqmlcYrEzAvws7Pw3z6BK0iGbrwvdrUQUhi3eXgtxp5I8PDo9YfjQ==" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha512-MoRNloxbStBcD8z3M/2BmnT+rg4IsMxPkXaGh2zD6LGNNFE80W3onsAhRcMAMrSoyWL9xD7Ert0men7vR8LUZg==" crossorigin="anonymous" />
+</head>
+<style type="text/css">
+.navbar-brand {
+      font-weight: 500;
+      font-size: 2rem !important;
+    }
+    body {
+    background-color: #F0F0F0;
+    /* background-color: rgb(219, 207, 31); */
+    text-align: center;
+}
+.link {
+  fill: none;
+  /* stroke: #a81f1f; */
+  stroke-opacity: .3;
+}
+.link:hover {
+  stroke-opacity: 1.0;
+}
+
+.tooltip {
+  position: absolute;
+  background-color: white;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 1;
+}
+.buying-vhigh {
+      stroke: red;
+    }
+
+    
+    .teaching {
+      stroke: #1e2d09;
+    }
+    .research {
+      stroke: #125c35;
+    }
+    .citations {
+      stroke: #d9829e;
+    }
+    .industry-income {
+      stroke: #dcb895;
+    }
+
+    .international {
+      stroke: #e5e5b1;
+    }
+
+
+
+    .legend-container {
+      cursor: pointer;
+      margin-left: 2rem;
+    }
+
+    .dot-border {
+      height: 25px;
+      width: 25px;
+      background-color: transparent;
+      /* border: 4px red solid; */
+      display: inline-block;
+    }
+
+
+
+    .dot {
+      position: relative;
+      height: 20px;
+      width: 20px;
+      display: inline-block;
+      left: -20px;
+      top: -5px;
+    }
+
+    .buying-vhigh>.dot {
+      background-color: #1f77b4;
+    }
+
+    .buying-high>.dot {
+      background-color: #17becf;
+    }
+    .buying-med>.dot {
+      background-color: #9edae5;
+    }
+    .buying-low>.dot {
+      background-color: rgb(20, 32, 97);
+    }
+
+    .maint-vhigh>.dot {
+      background-color: #aec7e8;
+    }
+    .maint-high>.dot {
+      background-color: #c7c7c7;
+    }
+
+    .maint-med>.dot {
+      background-color: #bcbd22;
+    }
+
+    .maint-low>.dot {
+      background-color: #dbdb8d;
+    }
+
+    .doors-2>.dot {
+      background-color: #ff7f0e;
+    }
+    .doors-3>.dot {
+      background-color: #e377c2;
+    }
+
+    .doors-4>.dot {
+      background-color: #f7b6d2;
+    }
+    .doors-5more>.dot {
+      background-color: #7f7f7f;
+    }
+
+    .persons-2>.dot {
+      background-color: #ffbb78;
+    }
+
+    .persons-4>.dot {
+      background-color: #8c564b;
+    }
+    .persons-more>.dot {
+      background-color: #c49c94;
+    }
+
+    .lug_boot-small>.dot {
+      background-color: #2ca02c;
+    }
+
+    .lug_boot-med>.dot {
+      background-color: #9467bd;
+    }
+    .lug_boot-big>.dot {
+      background-color: #c5b0d5;
+    }
+
+    .safety-low>.dot {
+      background-color: #98df8a;
+    }
+
+    .safety-med>.dot {
+      background-color: #d62728;
+    }
+    .safety-high>.dot {
+      background-color: #ff9896;
+    }
+
+    
+
+</style>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
+        <span class="navbar-brand">HW08-Sankey Diagram</span>
+    </nav>
+
+    <div class="col-12 d-flex flex-row pt-3">
+        
+
+        <div class="legend-container d-flex flex-row" data-species="scores_overall" data-rank = scores_overall_rank>
+            <div class="dot-container buying-vhigh"><span class="dot-border"></span><span class="dot"></span></div>
+            <span class="legend">buying-vhigh</span>
+        </div>
+
+        <div class="legend-container d-flex flex-row" data-species="scores_teaching" data-rank = scores_teaching_rank>
+          <div class="dot-container buying-high"><span class="dot-border"></span><span class="dot"></span></div>
+          <span class="legend">buying-high</span>
+        </div>
+        <div class="legend-container d-flex flex-row" data-species="scores_research"data-rank = scores_research_rank>
+          <div class="dot-container buying-med"><span class="dot-border"></span><span class="dot"></span></div>
+          <span class="legend">buying-med</span>
+        </div>
+        <div class="legend-container d-flex flex-row" data-species="scores_citations"data-rank = scores_citations_rank>
+          <div class="dot-container buying-low"><span class="dot-border"></span><span class="dot"></span></div>
+          <span class="legend">buying-low</span>
+        </div>
+
+        <div class="legend-container d-flex flex-row" data-species="scores_industry_income"data-rank = scores_industry_income_rank>
+            <div class="dot-container maint-vhigh"><span class="dot-border"></span><span class="dot"></span></div>
+            <span class="legend">maint-vhigh</span>
+        </div>
+
+        <div class="legend-container d-flex flex-row" data-species="scores_international_outlook"data-rank = scores_international_outlook_rank>
+            <div class="dot-container maint-high"><span class="dot-border"></span><span class="dot"></span></div>
+            <span class="legend">maint-high</span>
+        </div>
+
+        <div class="legend-container d-flex flex-row" data-species="scores_teaching" data-rank = scores_teaching_rank>
+            <div class="dot-container maint-med"><span class="dot-border"></span><span class="dot"></span></div>
+            <span class="legend">maint-med</span>
+          </div>
+          <div class="legend-container d-flex flex-row" data-species="scores_research"data-rank = scores_research_rank>
+            <div class="dot-container maint-low"><span class="dot-border"></span><span class="dot"></span></div>
+            <span class="legend">maint-low</span>
+          </div>
+          <div class="legend-container d-flex flex-row" data-species="scores_citations"data-rank = scores_citations_rank>
+            <div class="dot-container doors-2"><span class="dot-border"></span><span class="dot"></span></div>
+            <span class="legend">doors-2</span>
+          </div>
+  
+          <div class="legend-container d-flex flex-row" data-species="scores_industry_income"data-rank = scores_industry_income_rank>
+              <div class="dot-container doors-3"><span class="dot-border"></span><span class="dot"></span></div>
+              <span class="legend">doors-3</span>
+          </div>
+  
+          <div class="legend-container d-flex flex-row" data-species="scores_international_outlook"data-rank = scores_international_outlook_rank>
+              <div class="dot-container doors-4"><span class="dot-border"></span><span class="dot"></span></div>
+              <span class="legend">doors-4</span>
+          </div>
+    </div>
+
+    <div class="col-12 d-flex flex-row pt-3">
+        
+
+        <div class="legend-container d-flex flex-row" data-species="scores_overall" data-rank = scores_overall_rank>
+            <div class="dot-container doors-5more"><span class="dot-border"></span><span class="dot"></span></div>
+            <span class="legend">doors-5more</span>
+        </div>
+
+        <div class="legend-container d-flex flex-row" data-species="scores_teaching" data-rank = scores_teaching_rank>
+          <div class="dot-container persons-2"><span class="dot-border"></span><span class="dot"></span></div>
+          <span class="legend">persons-2</span>
+        </div>
+        <div class="legend-container d-flex flex-row" data-species="scores_research"data-rank = scores_research_rank>
+          <div class="dot-container persons-4"><span class="dot-border"></span><span class="dot"></span></div>
+          <span class="legend">persons-4</span>
+        </div>
+        <div class="legend-container d-flex flex-row" data-species="scores_citations"data-rank = scores_citations_rank>
+          <div class="dot-container persons-more"><span class="dot-border"></span><span class="dot"></span></div>
+          <span class="legend">persons-more</span>
+        </div>
+
+        <div class="legend-container d-flex flex-row" data-species="scores_industry_income"data-rank = scores_industry_income_rank>
+            <div class="dot-container lug_boot-small"><span class="dot-border"></span><span class="dot"></span></div>
+            <span class="legend">lug_boot-small</span>
+        </div>
+
+        <div class="legend-container d-flex flex-row" data-species="scores_international_outlook"data-rank = scores_international_outlook_rank>
+            <div class="dot-container lug_boot-med"><span class="dot-border"></span><span class="dot"></span></div>
+            <span class="legend">lug_boot-med</span>
+        </div>
+
+        <div class="legend-container d-flex flex-row" data-species="scores_teaching" data-rank = scores_teaching_rank>
+            <div class="dot-container lug_boot-big"><span class="dot-border"></span><span class="dot"></span></div>
+            <span class="legend">lug_boot-big</span>
+          </div>
+          <div class="legend-container d-flex flex-row" data-species="scores_research"data-rank = scores_research_rank>
+            <div class="dot-container safety-low"><span class="dot-border"></span><span class="dot"></span></div>
+            <span class="legend">safety-low</span>
+          </div>
+          <div class="legend-container d-flex flex-row" data-species="scores_citations"data-rank = scores_citations_rank>
+            <div class="dot-container safety-med"><span class="dot-border"></span><span class="dot"></span></div>
+            <span class="legend">safety-med</span>
+          </div>
+  
+          <div class="legend-container d-flex flex-row" data-species="scores_industry_income"data-rank = scores_industry_income_rank>
+              <div class="dot-container safety-high"><span class="dot-border"></span><span class="dot"></span></div>
+              <span class="legend">safety-high</span>
+          </div>
+  
+          
+    </div>
+
+</body>
+
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/holtzy/D3-graph-gallery@master/LIB/sankey.js"></script>
+<!-- Create a div where the graph will take place -->
+
+<div id="my_dataviz"></div>
+<script>
+// set the dimensions and margins of the graph
+   // set the dimensions and margins of the graph
+   var margin = {top: 10, right: 10, bottom: 10, left: 10},
+        width = 1200 - margin.left - margin.right,
+        height = 700 - margin.top - margin.bottom;
+    
+    // append the svg object to the body of the page
+    var svg = d3.select("#my_dataviz").append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+        .attr("transform",
+              "translate(" + margin.left + "," + margin.top + ")");
+    
+    // Color scale used
+    var color = d3.scaleOrdinal(d3.schemeCategory20);
+    
+    var colorCount = 21; // Number of colors you want
+
+    // Generate an array of 21 distinct colors
+    var colors = ['#1f77b4', '#aec7e8', '#ff7f0e', '#ffbb78', '#2ca02c', '#98df8a', '#d62728', '#ff9896', '#9467bd', '#c5b0d5', '#8c564b', '#c49c94', '#e377c2', '#f7b6d2', '#7f7f7f', '#c7c7c7', '#bcbd22', '#dbdb8d', '#17becf', '#9edae5', 'rgb(20, 32, 97)'];
+    console.log(colors);
+
+    
+    // Set the sankey diagram properties
+    var sankey = d3.sankey()
+        .nodeWidth(20)
+        .nodePadding(20)
+        .size([width, height]);
+    
+   
+
+
+          
+// var testdata = {"nodes":[
+//     {"node":0,"name":"node0"},
+//     {"node":1,"name":"node1"},
+//     {"node":2,"name":"node2"},
+//     {"node":3,"name":"node3"},
+//     {"node":4,"name":"node4"}
+// ],
+// "links":[
+//     {"source":0,"target":2,"value":2},
+//     {"source":1,"target":2,"value":2},
+//     {"source":1,"target":3,"value":2},
+//     {"source":0,"target":4,"value":2},
+//     {"source":2,"target":3,"value":2},
+//     {"source":2,"target":4,"value":2},
+//     {"source":3,"target":4,"value":4}
+// ]}
+
+
+// Load the data using D3 v4
+d3.text("http://vis.lab.djosix.com:2023/data/car.data", function(text) {
+    // Parse the CSV data
+    const features = ["buying", "maint", "doors", "persons", "lug_boot", "safety"];
+    const data = d3.csvParse(features.join(",") + "\n" + text);
+    console.log(data);
+
+
+
+    const nodes = [];
+    const links = [];
+//     const nodes = [
+//     {node: 0, name: "buying-vhigh"},
+//     {node: 1, name: "buying-high"},
+//     {node: 2, name: "buying-med"},
+//     {node: 3, name: "buying-low"},
+//     {node: 4, name: "maint-vhigh"},
+//     {node: 5, name: "maint-high"},
+//     {node: 6, name: "maint-med"},
+//     {node: 7, name: "maint-low"},
+//     {node: 8, name: "doors-2"},
+//     {node: 9, name: "doors-3"},
+//     {node: 10, name: "doors-4"},
+//     {node: 11, name: "doors-5more"},
+//     {node: 12, name: "persons-2"},
+//     {node: 13, name: "persons-4"},
+//     {node: 14, name: "persons-more"},
+//     {node: 15, name: "lug_boot-small"},
+//     {node: 16, name: "lug_boot-med"},
+//     {node: 17, name: "lug_boot-big"},
+//     {node: 18, name: "safety-low"},
+//     {node: 19, name: "safety-med"},
+//     {node: 20, name: "safety-high"}
+// ];
+   
+
+    // Define the order of attributes and their possible values
+    
+    // attributeOrder.forEach(attribute => {
+    //     valueOrder.forEach(value => {
+    //         const node = nodes.findIndex(node => node.name === `${attribute}-${value}`);
+    //         if (node === -1) {
+    //             nodes.push({node: nodes.length, name: `${attribute}-${value}`});
+    //         }
+    //     });
+    // });
+
+    data.forEach((entry, index) => {
+        Object.keys(entry).forEach(attribute => {
+            const value = entry[attribute];
+            const node = nodes.findIndex(node => node.name === `${attribute}-${value}`);
+            
+            if (node === -1) {
+                nodes.push({node: nodes.length, name: `${attribute}-${value}`});
+            }
+        });
+    });
+
+    data.forEach((entry, index) => {
+        const attributes = Object.keys(entry);
+        
+        for (let i = 0; i < attributes.length; i++) {
+            const sourceAttribute = attributes[i];
+            const sourceValue = entry[sourceAttribute];
+            const sourceNode = nodes.findIndex(node => node.name === `${sourceAttribute}-${sourceValue}`);
+            
+            
+            let j = i + 1;
+            if(j < attributes.length){
+                const targetAttribute = attributes[j];
+                const targetValue = entry[targetAttribute];
+                const targetNode = nodes.findIndex(node => node.name === `${targetAttribute}-${targetValue}`);
+                
+                const link = links.find(link => (link.source === sourceNode && link.target === targetNode) || (link.source === targetNode && link.target === sourceNode));
+                
+                if (link) {
+                    link.value++;
+                } else {
+                    links.push({source: sourceNode, target: targetNode, value: 1});
+                }
+            }
+
+                
+            
+        }
+    });
+    console.log(nodes);
+
+    console.log(links);
+
+    sankey
+          .nodes(nodes)
+          .links(links)
+          .layout(1);
+    
+      
+    
+      // add in the nodes
+      var node = svg.append("g")
+        .selectAll(".node")
+        .data(nodes)
+        .enter().append("g")
+          .attr("class", "node")
+          .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
+          .call(d3.drag()
+            .subject(function(d) { return d; })
+            .on("start", function() { this.parentNode.appendChild(this); })
+            .on("drag", dragmove));
+    
+      // add the rectangles for the nodes
+      var nodesColor = [];
+      node
+        .append("rect")
+          .attr("height", function(d) { return d.dy; })
+          .attr("width", sankey.nodeWidth())
+          .style("fill", function(d,i) { 
+            nodesColor.push(colors[i]);
+            return d.color = colors[i]; 
+           })
+          .style("stroke", function(d) { return d3.rgb(d.color).darker(2); })
+        // Add hover text
+        .append("title")
+          .text(function(d) { return d.name + "\n" + "There is " + d.value + " stuff in this node"; });
+    
+      // add in the title for the nodes
+        node
+          .append("text")
+            .attr("x", -6)
+            .attr("y", function(d) { return d.dy / 2; })
+            .attr("dy", ".35em")
+            .attr("text-anchor", "end")
+            .attr("transform", null)
+            .text(function(d) { return d.name; })
+          .filter(function(d) { return d.x < width / 2; })
+            .attr("x", 6 + sankey.nodeWidth())
+            .attr("text-anchor", "start");
+
+    console.log(nodesColor);
+    // add in the links
+    var link = svg.append("g")
+        .selectAll(".link")
+        .data(links)
+        .enter()
+        .append("path")
+          .attr("class", "link")
+          .attr("d", sankey.link() )
+          .style("stroke", function (d) {
+    return nodesColor[d.source.node]; // Use source node's color
+    })
+          .style("stroke-width", function(d) { return Math.max(1, d.dy); })
+          .sort(function(a, b) { return b.dy - a.dy; });
+    
+      // the function for moving the nodes
+      function dragmove(d) {
+        d3.select(this)
+          .attr("transform",
+                "translate("
+                   + d.x + ","
+                   + (d.y = Math.max(
+                      0, Math.min(height - d.dy, d3.event.y))
+                     ) + ")");
+        sankey.relayout();
+        link.attr("d", sankey.link() );
+      }
+
+      var tooltip = d3.select("body")
+        .append("div")
+        .attr("class", "tooltip")
+        .style("opacity", 0);
+
+    // Add mouseover and mouseout event handlers to links
+    link.on("mouseover", function (d) {
+        console.log(d);
+    tooltip.transition()
+        .duration(200)
+        .style("opacity", 0.9);
+    tooltip.html(nodes[d.source.node].name + " to "+nodes[d.target.node].name+": " + d.value)
+        .style("left", (d3.event.pageX) + "px")
+        .style("top", (d3.event.pageY - 28) + "px");
+    })
+    .on("mouseout", function (d) {
+        tooltip.transition()
+        .duration(500)
+        .style("opacity", 0);
+    });
+
+
+    
+
+
+    
+});
+
+</script>

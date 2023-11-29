@@ -1,0 +1,77 @@
+
+
+svg {
+    font: 10px sans-serif;
+    padding: 10px;
+  }
+
+  .axis,
+  .frame {
+    shape-rendering: crispEdges;
+  }
+
+  .axis line {
+    stroke: #d1c3c3;
+  }
+
+  .axis path {
+    display: none;
+  }
+
+  .cell text {
+    font-weight: bold;
+    text-transform: capitalize;
+    fill: black;
+  }
+
+  .frame {
+    fill: none;
+    stroke: #201717;
+  }
+
+  circle {
+    fill-opacity: .7;
+  }
+
+  circle.hidden {
+    fill: #ccc !important;
+  }
+
+  .extent {
+    fill: #000;
+    fill-opacity: .125;
+    stroke: #fff;
+  }
+
+  .legend {
+    display: flex;
+    align-items: center;
+  }
+  .dot {
+    margin: 0 5px 0px 10px;
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  .Iris-setosa {
+    background-color: #1f77b4;
+    fill: #1f77b4;
+  }
+  
+  .Iris-versicolor {
+    background-color: #ff7f0e;
+    fill: #ff7f0e;
+  }
+  
+  .Iris-virginica {
+    background-color: #2ca02c;
+    fill: #2ca02c;
+  }
+
+  .legend{
+    font-size: 1.2rem;
+}
+
+  

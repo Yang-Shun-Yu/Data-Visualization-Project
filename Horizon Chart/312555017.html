@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<head>
+    <title>HW07-Horizon Chart</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" integrity="sha512-uto9mlQzrs59VwILcLiRYeLKPPbS/bT71da/OEBYEwcdNUk8jYIy+D176RYoop1Da+f9mvkYrmj5MCLZWEtQuA==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha512-M5KW3ztuIICmVIhjSqXe01oV2bpe248gOxqmlcYrEzAvws7Pw3z6BK0iGbrwvdrUQUhi3eXgtxp5I8PDo9YfjQ==" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha512-MoRNloxbStBcD8z3M/2BmnT+rg4IsMxPkXaGh2zD6LGNNFE80W3onsAhRcMAMrSoyWL9xD7Ert0men7vR8LUZg==" crossorigin="anonymous" />
+</head>
+<style type="text/css">
+    .navbar-brand {
+      font-weight: 500;
+      font-size: 2rem !important;
+    }
+    body {
+    background-color: #F0F0F0;
+    text-align: center;
+}
+
+h1,
+p {
+    color: #484891;
+    font-weight: bold;
+}
+
+input,
+label {
+    accent-color: #484891;
+}
+
+#year, 
+#band-number {
+    border: solid;
+    border-color: #484891;
+}
+
+    
+
+</style>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
+        <span class="navbar-brand">HW07-Horizon Chart</span>
+    </nav>
+    
+    <div>
+        <button id="createGraphButton">Create Graph</button>
+        <label for="first-select">Year</label>
+        <select id="first-axis-select">
+            <option value="2017">2017</option>
+            <option value="2018">2018</option>
+            <option value="2019">2019</option>
+        
+        </select>
+        <label for="second-axis-select">Band number</label>
+        <select id="second-axis-select">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        </select>
+    </div>
+
+
+</body>
+
+<script src="https://d3js.org/d3.v7.js"></script>
+
+<!-- Create a div where the graph will take place -->
+
+<svg id="my_dataviz" width="1200" height="18000"></svg> 
+
+<script>
+
+const width = 1200;
+const height = 18000;
+const margin = 60;
+const interval = 100;
+const intervalMargin = 50;
+let band = 1;
+
+var divideValue = 1;
+
+// const pollutantDomains = { "SO2": 0.01/divideValue, "NO2": 0.07/divideValue, "O3": 0.07/divideValue, "CO": 1.5/divideValue, "PM10": 150/divideValue, "PM2.5": 90/divideValue };
+
+const svg = d3.select("#my_dataviz");
+
+
+const bandColors = {
+    "SO2": ["#FFCDD2","#EF9A9A","#E57373","#EF5350","#F44336"],
+    "NO2": ["#E1BEE7", "#CE93D8", "#BA68C8", "#AB47BC", "#9C27B0"],
+    "O3": ["#FFE0B2", "#FFCC80", "#FFB74D", "#FFA726", "#FF9800"],
+    "CO": ["#C8E6C9", "#A5D6A7", "#81C784", "#66BB6A", "#4CAF50"],
+    "PM10": ["#D7CCC8", "#BCAAA4", "#A1887F", "#8D6E63", "#795548"],
+    "PM2.5": ["#B3E0F2", "#81C7D4", "#4DB6AC", "#26A69A", "#009688"]
+};
+
+d3.csv("http://vis.lab.djosix.com:2023/data/air-pollution.csv").then(function (data) {
+    console.log(data);
+    
+    console.log("loading");
+    var StationCodes = [...new Set(data.map(item => item['Station code']))];
+
+    let cnt = 0;
+    
+    StationCodes.forEach(function(StationCode){
+        // Filter data for Station code 101
+        var filteredData = data.filter(d => d["Station code"] == StationCode && d['Measurement date'].startsWith('2017'));
+        console.log(filteredData);
+
+        var groupedData = d3.group(filteredData, d => d['Measurement date'].split(' ')[0]);
+        var pollutantDataset = [];
+        svg.append("text")
+                .attr("class", "text")
+                .attr("x", width - margin-850)
+                .attr("y", margin + interval * (cnt)  - intervalMargin+25)
+                // .attr("text-anchor", "left")
+                // .attr("dy", "0.35em")
+                .attr("font-size", "16px")
+                .text(`StationCode : ${StationCode} , Address : ${filteredData[0].Address}`);
+
+        ['SO2', 'NO2', 'O3', 'CO', 'PM10', 'PM2.5'].forEach(function(pollutantName){
+            var Dataset = Array.from(groupedData, ([key, value]) => {
+            var avg = {
+                date: new Date(key),
+                value: d3.mean(value, e => +e[pollutantName]),
+                
+                
+            
+                };
+                return avg;
+            });
+            var pollutantDomain = d3.max(Dataset, d => d.value);
+            pollutantDomain = pollutantDomain/divideValue;
+
+            // console.log(pollutantDomain);
+
+            const xScale = d3.scaleTime()
+            .domain([new Date(`2017-01-01`), new Date(`2017-12-31`)])
+            .range([0, width - margin * 2]);
+
+            svg.append("g")
+                .attr("class", "axis")
+                .attr("transform", `translate(${margin}, ${margin + interval * (cnt+1) - intervalMargin})`)
+                .call(d3.axisBottom(xScale).ticks(10));
+
+            const yScale = d3.scaleLinear()
+                .domain([0, pollutantDomain / band])
+                .range([interval - intervalMargin, 0]);
+            svg.append("g") 
+                .attr("class", "axis")
+                .attr("transform", `translate(${margin}, ${margin + interval * cnt})`)
+                .call(d3.axisLeft(yScale).ticks(3));
+
+
+
+            svg.append("text")
+                .attr("class", "text")
+                .attr("x", width - margin-1050)
+                .attr("y", margin + interval * cnt  - intervalMargin+interval/3)
+                // .attr("text-anchor", "left")
+                // .attr("dy", "0.35em")
+                .attr("font-size", "12px")
+                .text(`${pollutantName}`);
+
+            for(let k = 0;k<band;k++){
+
+                svg.append("rect")
+                        .attr("class", "rect")
+                        .attr("x",   width - margin + 10)
+                        .attr("y", margin + interval * cnt + ((interval - intervalMargin) / band) * k)
+                        .attr("width", 6)
+                        .attr("height", (interval - intervalMargin) / band)
+                        .attr("fill", bandColors[pollutantName][k]);
+
+                svg.append("text")
+                    .attr("class", "text")
+                    .attr("x",width - margin + 20 )
+                    .attr("y", margin + interval * cnt + ((interval - intervalMargin) / band) * k)
+                    .attr("text-anchor", "left")
+                    .attr("dy", "0.35em")
+                    .attr("font-size", "12px")
+                    .text(`${(pollutantDomain / band * k).toFixed(3)}`);
+
+
+                svg.append("path")
+                .attr("class", "path")
+                .datum(Dataset)
+                .attr("fill", bandColors[pollutantName][k])
+                .attr("d", d3.area()
+                    .x(function (d) { return xScale(d.date); })
+                    .y0(yScale(0))
+                    .y1(function (d) { return yScale(Math.min(Math.max(d.value - pollutantDomain / band * k, 0), pollutantDomain / band)); })
+                )
+                .attr("transform", `translate(${margin}, ${margin + interval * cnt})`);
+            }
+
+            
+            
+            cnt++;
+            
+        })
+        cnt++;
+        
+        
+
+    })
+
+
+
+     
+
+    
+  
+
+
+});
+
+
+function render(Year,inputband){
+    // const svg = d3.select("#my_dataviz");
+    var bandNumber = +inputband;
+    d3.csv("http://vis.lab.djosix.com:2023/data/air-pollution.csv").then(function (data) {
+    console.log(data);
+    
+    console.log("loading");
+    var StationCodes = [...new Set(data.map(item => item['Station code']))];
+
+    let cnt = 0;
+    
+    StationCodes.forEach(function(StationCode){
+        // Filter data for Station code 101
+        var filteredData = data.filter(d => d["Station code"] == StationCode && d['Measurement date'].startsWith(Year));
+        // console.log(filteredData);
+
+        var groupedData = d3.group(filteredData, d => d['Measurement date'].split(' ')[0]);
+        var pollutantDataset = [];
+        svg.append("text")
+                .attr("class", "text")
+                .attr("x", width - margin-850)
+                .attr("y", margin + interval * (cnt)  - intervalMargin+25)
+                // .attr("text-anchor", "left")
+                // .attr("dy", "0.35em")
+                .attr("font-size", "16px")
+                .text(`StationCode : ${StationCode} , Address : ${filteredData[0].Address}`);
+
+        ['SO2', 'NO2', 'O3', 'CO', 'PM10', 'PM2.5'].forEach(function(pollutantName){
+            var Dataset = Array.from(groupedData, ([key, value]) => {
+            var avg = {
+                date: new Date(key),
+                value: d3.mean(value, e => +e[pollutantName]),
+                
+                
+            
+                };
+                return avg;
+            });
+            var pollutantDomain = d3.max(Dataset, d => d.value);
+            pollutantDomain = pollutantDomain/divideValue;
+
+            // console.log(pollutantDomain);
+
+            const xScale = d3.scaleTime()
+            .domain([new Date(`${Year}-01-01`), new Date(`${Year}-12-31`)])
+            .range([0, width - margin * 2]);
+
+            svg.append("g")
+                .attr("class", "axis")
+                .attr("transform", `translate(${margin}, ${margin + interval * (cnt+1) - intervalMargin})`)
+                .call(d3.axisBottom(xScale).ticks(10));
+
+            const yScale = d3.scaleLinear()
+                .domain([0, pollutantDomain / bandNumber])
+                .range([interval - intervalMargin, 0]);
+            svg.append("g") 
+                .attr("class", "axis")
+                .attr("transform", `translate(${margin}, ${margin + interval * cnt})`)
+                .call(d3.axisLeft(yScale).ticks(3));
+
+
+
+            svg.append("text")
+                .attr("class", "text")
+                .attr("x", width - margin-1050)
+                .attr("y", margin + interval * cnt  - intervalMargin+interval/3)
+                // .attr("text-anchor", "left")
+                // .attr("dy", "0.35em")
+                .attr("font-size", "12px")
+                .text(`${pollutantName}`);
+
+            for(let k = 0;k<bandNumber;k++){
+
+
+                svg.append("rect")
+                    .attr("class", "rect")
+                    .attr("x",   width - margin + 10)
+                    .attr("y", margin + interval * cnt + ((interval - intervalMargin) / bandNumber) * k)
+                    .attr("width", 6)
+                    .attr("height", (interval - intervalMargin) / bandNumber)
+                    .attr("fill", bandColors[pollutantName][k]);
+
+                svg.append("text")
+                    .attr("class", "text")
+                    .attr("x", width - margin + 20)
+                    .attr("y", margin + interval * cnt + ((interval - intervalMargin) / bandNumber) * k)
+                    .attr("text-anchor", "left")
+                    .attr("dy", "0.35em")
+                    .attr("font-size", "12px")
+                    .text(`${(pollutantDomain / bandNumber * k).toFixed(3)}`);
+
+
+                svg.append("path")
+                .attr("class", "path")
+                .datum(Dataset)
+                .attr("fill", bandColors[pollutantName][k])
+                .attr("d", d3.area()
+                    .x(function (d) { return xScale(d.date); })
+                    .y0(yScale(0))
+                    .y1(function (d) { return yScale(Math.min(Math.max(d.value - pollutantDomain / bandNumber * k, 0), pollutantDomain / bandNumber)); })
+                )
+                .attr("transform", `translate(${margin}, ${margin + interval * cnt})`);
+            }
+
+            
+            
+            cnt++;
+            
+        })
+        cnt++;
+        
+        
+
+    })
+
+
+
+     
+
+    
+  
+
+
+});
+
+}
+
+function collectOptions() {
+    svg.selectAll(".path").remove();
+    svg.selectAll(".axis").remove();
+    svg.selectAll(".text").remove();
+    svg.selectAll(".rect").remove();
+
+    // d3.select("#my_dataviz svg").remove();
+    const Year = document.getElementById("first-axis-select").value;
+    const bandNumber = document.getElementById("second-axis-select").value;
+    
+
+    
+
+
+    // Call createGraph with the collected options
+    render(Year,bandNumber);
+
+}
+
+// Attach event listener to the submit button
+document.getElementById("createGraphButton").addEventListener("click", collectOptions);
+
+</script>
