@@ -35,4 +35,6 @@ Data Source: [Car Evaluation Dataset](https://archive.ics.uci.edu/dataset/19/car
 3. **Visual Design:**
    - Ensure clear color distinction for different categories.
    - Provide a legend or key that explains any color or symbol used.
-
+## Demo
+![image](https://github.com/Yang-Shun-Yu/Data-Visualization-Project/blob/master/Sankey%20Diagram/Sankey%20diagram.png)
+   
