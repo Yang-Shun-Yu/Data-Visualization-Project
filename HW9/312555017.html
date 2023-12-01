@@ -24,14 +24,28 @@
         color: #684c23;
         
         font-weight: bold;
+        text-align: left;
     }
 </style>
 
 <body>
     <h1>HW09-Spotify Tracks Dataset</h1>
-    <label for="rangeInput">Select +N decreasing -N increasing : </label>
-    <input type="number" id="rangeInput" value="10" min="-125" max="125">
-    <button onclick="updateChart()">Update Chart</button>   
+    <div>
+        <div style="display: inline-block; margin-right: 200px;">
+            <label for="rangeInput">Select +N decreasing -N increasing : </label>
+            <input type="number" id="rangeInput" value="-25" min="-1250" max="1250">
+            <button onclick="updateChart()">Update Chart</button>  
+        </div>
+
+        <div style="display: inline-block;">
+            <label for="rangeInput">Select +N decreasing -N increasing : </label>
+            <input type="number" id="rangeInputPopularity" value="25" min="-1000000" max="10000000">
+            <button onclick="updateChartPopularity()">Update Chart</button>  
+        </div>
+
+    </div>
+
+ 
 </body>
 <script src="https://d3js.org/d3.v6.js"></script>
 
@@ -48,12 +62,64 @@
         <h2>Bottom 20 Popularity Distribution</h2>
     </div> -->
 </div>
-<div id="BarChart_dataviz"></div>
-<div id="Heatmap_dataviz"></div>
+<div id="graphsContainer">
+    <div id="BarChart_dataviz" style="display: inline-block; margin-right: 20px;">
+        <h3>
+            Genres Popularity
+        </h3>
+    </div>
+    <div id="Artists_dataviz" style="display: inline-block;">
+        <h3>
+            Artists Popularity
+        </h3>
+    </div>
+</div>
+
+
+<div id="graphsContainer">
+    <div id="Heatmap_dataviz" style="display: inline-block; margin-right: 20px;">
+        <h3>
+            HeatMap
+        </h3>
+        <p>
+            A:popularity B:duration_ms C:danceability D:energy E:key F:loudness G:mode H:speechiness
+        </p>
+        <p>
+            I:acousticness J:instrumentalness K:liveness L:valence M:tempo N: time_signature
+        </p>
+    </div>
+    <div id="ScatterPlot_dataviz" style="display: inline-block;">
+        <h3>
+            ScatterPlot and Regression curve
+        </h3>
+    </div>
+</div>
 
 <script>
+    function setLoudnessToPositive(data) {
+                data.forEach(d => {
+                    d.loudness = Math.abs(d.loudness);
+                });
+            }
+    function setPopularity(data) {
+                data.forEach(d => {
+                    d.popularity = Math.min(+d.popularity, 100);
+                });
+            }
     function renderBarChart(svg, data, name_x, name_y, width_x, height_y,bar_color_on,bar_color_over) {
+        // setPopularity(data);
         // X axis
+
+        data.forEach(d => {
+
+            d[name_y] = +d[name_y];
+        });
+        
+
+
+
+        const yDomain = d3.extent(data, d => d[name_y]);
+        console.log(data);
         const x = d3.scaleBand()
             .range([0, width_x])
             .domain(data.map(d => d[name_x]))
@@ -68,7 +134,7 @@
 
         // Add Y axis
         const y = d3.scaleLinear()
-            .domain([0, 60000])
+            .domain(yDomain)
             .range([height_y, 0]);
 
         svg.append("g")
@@ -93,8 +159,8 @@
                     .attr("x", x(d[name_x]) + x.bandwidth() / 2)
                     .attr("y", y(d[name_y]) - 5)
                     .attr("text-anchor", "middle")
-                    .attr("font-size", "12px")
-                    .text(d[name_y]);
+                    .attr("font-size", "24px")
+                    .text(d[name_x] +" : "+ d[name_y]);
             })
             .on("mouseout", function (event, d) {
                 d3.select(this)
@@ -126,11 +192,76 @@
         .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
         //Read the data
-        d3.csv("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/heatmap_data.csv").then(function(data) {
+        d3.csv("http://vis.lab.djosix.com:2023/data/spotify_tracks.csv").then(function(data) {
+        setPopularity(data);
+        // Columns to exclude
+        const excludedColumns = ['track_id', 'artists', 'album_name', 'track_name', 'track_genre', 'explicit',''];
 
-        // Labels of row and columns -> unique identifier of the column called 'group' and 'variable'
-        const myGroups = Array.from(new Set(data.map(d => d.group)))
-        const myVars = Array.from(new Set(data.map(d => d.variable)))
+        // Filter columns based on exclusion
+        const columnsToInclude = Object.keys(data[0]).filter(column => !excludedColumns.includes(column));
+        console.log(columnsToInclude);
+
+        // Function to set loudness to positive
+        function setLoudnessToPositive(data) {
+            data.forEach(d => {
+                d.loudness = Math.abs(d.loudness);
+            });
+        }
+
+        // Call the function to set loudness to positive
+        setLoudnessToPositive(data);
+        console.log(data);
+
+        // Function to calculate the correlation matrix
+        function calculateCorrelationMatrix(data) {
+            const correlationMatrix = d3.range(columnsToInclude.length).map(() => d3.range(columnsToInclude.length).fill(0));
+
+            columnsToInclude.forEach((col1, i) => {
+                columnsToInclude.forEach((col2, j) => {
+                    const valuesCol1 = data.map(d => +d[col1]);
+                    const valuesCol2 = data.map(d => +d[col2]);
+
+                    const meanCol1 = d3.mean(valuesCol1);
+                    const meanCol2 = d3.mean(valuesCol2);
+
+                    const numerator = d3.sum(valuesCol1.map((d, idx) => (d - meanCol1) * (valuesCol2[idx] - meanCol2)));
+                    const denominator = Math.sqrt(d3.sum(valuesCol1.map(d => Math.pow(d - meanCol1, 2))) * d3.sum(valuesCol2.map(d => Math.pow(d - meanCol2, 2))));
+
+                    correlationMatrix[i][j] = numerator / denominator;
+                });
+            });
+
+            return correlationMatrix;
+        }
+        // const rowNames = columnsToInclude;
+        // const columnNames = columnsToInclude;
+        const rowNames = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J','K','L','M','N'];
+        const columnNames = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J','K','L','M','N'];
+
+        const correlationMatrix = calculateCorrelationMatrix(data);
+        // Assuming correlationMatrix is your existing correlation matrix
+        const newDataset = [];
+
+        correlationMatrix.forEach((row, i) => {
+            row.forEach((value, j) => {
+                newDataset.push({
+                    group: rowNames[i], // Replace with your actual row names
+                    variable: columnNames[j], // Replace with your actual column names
+                    value: value
+                });
+            });
+        });
+
+        // Now, newDataset will contain the desired data structure
+        console.log(newDataset);
+
+
+
+        // Display the correlation matrix in the console
+        console.log(correlationMatrix);
+
+        const myGroups = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J','K','L','M','N'];
+        const myVars = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J','K','L','M','N'];
 
         // Build X scales and axis:
         const x = d3.scaleBand()
@@ -154,9 +285,13 @@
             .select(".domain").remove()
 
         // Build color scale
+        // const myColor = d3.scaleSequential()
+        //     .interpolator(d3.interpolateInferno)
+        //     .domain([-1,1])
+
         const myColor = d3.scaleSequential()
-            .interpolator(d3.interpolateInferno)
-            .domain([1,100])
+            .interpolator(d3.interpolateRgb("#FFEBCD", "#006400")) // Replace "blue" and "red" with your desired colors
+            .domain([-1, 1]);
 
         // create a tooltip
         const tooltip = d3.select("#Heatmap_dataviz")
@@ -178,11 +313,19 @@
             .style("opacity", 1)
         }
         const mousemove = function(event,d) {
+            // console.log(d);
             const tooltipX = event.pageX + 10; // Adjust the horizontal position
             const tooltipY = event.pageY - 10; // Adjust the vertical position
 
+            
+            
+            let numberX = d.group.charCodeAt(0)-'A'.charCodeAt(0);
+            let numberY = d.variable.charCodeAt(0)-'A'.charCodeAt(0);
+            
+            let tooltipText = columnsToInclude[numberX] + " and " + columnsToInclude[numberY] + " correlation: " + d.value.toFixed(3);
+            // console.log(numberX);
             tooltip
-                .html("The exact value of<br>this cell is: " + d.value)
+                .html(tooltipText)
                 .style("left", tooltipX + "px")
                 .style("top", tooltipY + "px");
         }
@@ -194,9 +337,10 @@
             .style("opacity", 0.8)
         }
 
+
         // add the squares
         svg.selectAll()
-            .data(data, function(d) {return d.group+':'+d.variable;})
+            .data(newDataset, function(d) {return d.group+':'+d.variable;})
             .join("rect")
             .attr("x", function(d) { return x(d.group) })
             .attr("y", function(d) { return y(d.variable) })
@@ -211,7 +355,14 @@
             .on("mouseover", mouseover)
             .on("mousemove", mousemove)
             .on("mouseleave", mouseleave)
-        })
+            .on("click",function(event,d){
+                let numberX = d.group.charCodeAt(0)-'A'.charCodeAt(0);
+                let numberY = d.variable.charCodeAt(0)-'A'.charCodeAt(0);
+                renderScatterPlot(columnsToInclude[numberX],columnsToInclude[numberY]);
+                console.log("Rectangle clicked:", d);
+            })
+                
+    })
 
 
 
@@ -267,12 +418,14 @@
     function updateChart() {
             d3.selectAll("#BarChart_dataviz svg").remove();
             const rangeValue = document.getElementById("rangeInput").value;
+            
             // Fetch data and update the chart with the specified range
             // You can modify this part based on your data fetching logic
             d3.csv("http://vis.lab.djosix.com:2023/data/spotify_tracks.csv").then(function (data) {
-                const margin = { top: 10, right: 30, bottom: 80, left: 50 },
-                    width = 500 - margin.left - margin.right,
-                    height = 500 - margin.top - margin.bottom;
+                setPopularity(data);
+                const margin = { top: 30, right: 70, bottom: 80, left: 80 },
+                    width = Math.abs(rangeValue)*30 - margin.left - margin.right,
+                    height = 550 - margin.top - margin.bottom;
                 const svg = d3.select("#BarChart_dataviz")
                     .selectAll("svg")
                     .data([null])
@@ -291,6 +444,7 @@
                     track_genre,
                     popularity: d3.sum(entries, d => +d.popularity)
                 }));
+                console.log(genrePopularityArray);
 
                 // Sort the genrePopularityArray by popularity in descending order
                 if(rangeValue < 0){
@@ -314,8 +468,201 @@
             });
         }
 
+        //update artist popularity
+        function updateChartPopularity() {
+            d3.selectAll("#Artists_dataviz svg").remove();
+            const rangeValue = document.getElementById("rangeInputPopularity").value;
+            
+            // Fetch data and update the chart with the specified range
+            // You can modify this part based on your data fetching logic
+            d3.csv("http://vis.lab.djosix.com:2023/data/spotify_tracks.csv").then(function (data) {
+                setPopularity(data);
+                const margin = { top: 30, right: 70, bottom: 80, left: 80 },
+                    width = Math.abs(rangeValue)*30 - margin.left - margin.right,
+                    height = 550 - margin.top - margin.bottom;
+                const svg = d3.select("#Artists_dataviz")
+                    .selectAll("svg")
+                    .data([null])
+                    .enter()
+                    .append("svg")
+                    .attr("width", width + margin.left + margin.right)
+                    .attr("height", height + margin.top + margin.bottom)
+                    .append("g")
+                    .attr("transform", `translate(${margin.left},${margin.top})`);
+
+                // Create a map to store artist statistics
+            const artistStatistics = new Map();
+
+            // Iterate through the data
+            data.forEach(entry => {
+            // Split artists by semicolon
+            const artists = entry.artists.split(';');
+
+            // Iterate through each artist
+            artists.forEach(artist => {
+                // Check if the artist is already in the map
+                if (artistStatistics.has(artist)) {
+                // If yes, update the popularity
+                artistStatistics.get(artist).popularity += entry.popularity;
+                } else {
+                // If no, add the artist to the map
+                artistStatistics.set(artist, { popularity: entry.popularity });
+                }
+                });
+            });
+
+
+            // console.log('Total Popularity:', totalPopularity);
+
+            // Display the artist statistics
+            // artistStatistics.forEach((stats, artist) => {
+            // console.log(`Artist: ${artist}, Total Popularity: ${stats.popularity}`);
+            // });
+
+            const artistData = Array.from(artistStatistics, ([artist, stats]) => ({ Artist: artist, popularity: stats.popularity }));
+            console.log(artistData);
+
+                // Sort the genrePopularityArray by popularity in descending order
+                if(rangeValue < 0){
+                    artistData.sort((a, b) => -b.popularity + a.popularity);
+                    const minGenres = artistData.slice(0, -rangeValue);
+                    renderBarChart(svg, minGenres, 'Artist', 'popularity', width, height,'#69b36d','#105f14');
+
+                }else{
+                    artistData.sort((a, b) => b.popularity - a.popularity);
+                    const topGenres = artistData.slice(0, rangeValue);
+                    renderBarChart(svg, topGenres, 'Artist', 'popularity', width, height,'#d64040','#a30303');
+                }
+                
+
+                // Take the top N genres based on the user input
+                
+
+                // Render the bar chart with the updated data
+
+                
+            });
+        }
+
+        function calculateLinearRegression(data, xAccessor, yAccessor) {
+            const n = data.length;
+            let sumX = 0;
+            let sumY = 0;
+            let sumXY = 0;
+            let sumXSquare = 0;
+
+            data.forEach(d => {
+                const x = xAccessor(d);
+                const y = yAccessor(d);
+
+                sumX += x;
+                sumY += y;
+                sumXY += x * y;
+                sumXSquare += x * x;
+            });
+
+            const slope = (n * sumXY - sumX * sumY) / (n * sumXSquare - sumX * sumX);
+            const intercept = (sumY - slope * sumX) / n;
+
+            return { slope, intercept };
+        }
+
+
+        function renderScatterPlot(x_name,y_name){
+            d3.selectAll("#ScatterPlot_dataviz svg").remove();
+                    // set the dimensions and margins of the graph
+            const margin = {top: 10, right: 30, bottom: 50, left: 120},
+                    width = 500 - margin.left - margin.right,
+                    height = 450 - margin.top - margin.bottom;
+            
+            // append the svg object to the body of the page
+            const svg = d3.select("#ScatterPlot_dataviz")
+                .append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                .attr("transform", `translate(${margin.left}, ${margin.top})`);
+            
+            //Read the data
+            d3.csv("http://vis.lab.djosix.com:2023/data/spotify_tracks.csv").then( function(data) {
+                data.forEach(d => {
+                    d[x_name] = +d[x_name];
+                    d[y_name] = +d[y_name];
+                });
+                
+
+                // Call the function to set loudness to positive
+                setLoudnessToPositive(data);
+
+                const xDomain = d3.extent(data, d => d[x_name]);
+                const yDomain = d3.extent(data, d => d[y_name]);
+                // Add X axis
+                const x = d3.scaleLinear()
+                    .domain(xDomain)
+                    .range([ 0, width ]);
+                svg.append("g")
+                    .attr("transform", `translate(0, ${height})`)
+                    .call(d3.axisBottom(x).ticks(5))
+                    .append("text")
+                    .attr("x", width / 2)
+                    .attr("y", margin.bottom - 30)
+                    .attr("dy", "1em")
+                    .style("text-anchor", "middle")
+                    .style("fill", "black")
+                    .style("font-size", "16px")
+                    .text(x_name);
+                // Add Y axis
+                const y = d3.scaleLinear()
+                    .domain(yDomain)
+                    .range([ height, 0]);
+                svg.append("g")
+                    .call(d3.axisLeft(y).ticks(5))
+                    .append("text")
+                    .attr("transform", "rotate(-90)")
+                    .attr("y", 0 - 80)
+                    .attr("x", 0 - height / 2)
+                    .attr("dy", "1em")
+                    .style("text-anchor", "middle")
+                    .style("fill", "black")
+                    .style("font-size", "16px")
+                    .text(y_name);
+
+            
+                // Add dots
+                svg.append('g')
+                .selectAll("dot")
+                .data(data)
+                .join("circle")
+                    .attr('cx', d => x(d[x_name]))
+                    .attr('cy', d => y(d[y_name]))
+                    .attr("r", 1.5)
+                    .style("fill", "#69b3a2")
+
+                // Load the regression module
+                const regressionLine = calculateLinearRegression(data, d => d[x_name], d => d[y_name]);
+                // Calculate the regression line points
+                const x1 = d3.min(data, d => d[x_name]);
+                const x2 = d3.max(data, d => d[x_name]);
+                const y1 = regressionLine.slope * x1 + regressionLine.intercept;
+                const y2 = regressionLine.slope * x2 + regressionLine.intercept;
+
+                // Draw the regression line
+                svg.append('line')
+                .attr('x1', x(x1))
+                .attr('y1', y(y1))
+                .attr('x2', x(x2))
+                .attr('y2', y(y2))
+                .style('stroke', 'red')
+                .style('stroke-width', 2);
+
+
+        })
+    }
+
         // Initial chart rendering
         renderHeatmap();
         updateChart();
+        updateChartPopularity();
+        renderScatterPlot('popularity','duration_ms');
 
 </script>
