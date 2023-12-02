@@ -16,7 +16,21 @@ At the top of the screen, two graphs illustrate the popularity distribution for 
 
 ## Correlation Heatmap
 
-Below the popularity distribution graphs, a heatmap represents the correlation between various columns.
+Below the popularity distribution graphs, a heatmap represents the correlation between 14 columns : 
+1. **Popularity**
+2. **Duration (ms)**
+3. **Danceability**
+4. **Energy**
+5. **Key**
+6. **Loudness**
+7. **Mode**
+8. **Speechiness**
+9. **Acousticness**
+10. **Instrumentalness**
+11. **Liveness**
+12. **Valence**
+13. **Tempo**
+14. **Time Signature**
 
 - **Interaction:**
   - *Hover:* Reveals column names and correlation values upon hovering over a heatmap region.
