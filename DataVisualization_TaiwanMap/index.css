@@ -1,0 +1,61 @@
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    background-color: #333333;
+    color: #ffffff;
+    padding: 2px;
+    font-size: 14px;
+    text-align: center;
+}
+
+nav {
+    background-color: #f4f4f4;
+    padding: 10px;
+    display: flex;
+    text-align: center;
+}
+
+section {
+    padding: 10px;
+    height: 500px;
+}
+
+.nav-item {
+    width: 33%;
+    color: #ffffff;
+    margin-right: 10px;
+    padding: 2px;
+    background-color: #333333;
+    border-radius: 10px;
+}
+
+.cards {
+    display: flex;
+    height: 100%;
+}
+
+.card {
+    width: 33%;
+    height: 100%;
+}
+
+.svg {
+    width: 96%;
+    margin: 2%;
+    border: 2px solid #dddddd;
+    border-radius: 5px;
+    display: block;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.small-svg {
+    height: 47%;
+}
+
+.big-svg {
+    height: 96%;
+}

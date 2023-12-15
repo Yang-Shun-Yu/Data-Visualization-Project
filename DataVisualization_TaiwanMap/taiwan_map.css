@@ -1,0 +1,20 @@
+.town {
+    fill: #01814A;
+    stroke: black;
+    stroke-width: 0.3px;
+}
+
+.town:hover {
+    fill: lightgray;
+}
+
+.country {
+    fill: #01814A;
+    stroke: black;
+    stroke-width: 0.3px;
+    
+}
+
+.country:hover {
+    fill: lightgray;
+}

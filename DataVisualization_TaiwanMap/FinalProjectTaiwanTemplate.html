@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taiwan map</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script src="https://unpkg.com/topojson@3.0.2/dist/topojson.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+
+
+
+
+        .town {
+            fill: #ebf0e4;
+            stroke: black;
+            stroke-width: 0.3px;
+        }
+
+        .town:hover {
+            fill: lightgray;
+        }
+
+        .country {
+            fill: #ebf0e4;
+            stroke: black;
+            stroke-width: 0.3px;
+        }
+
+        .country:hover {
+            fill: lightgray;
+        }
+
+
+        #Taiwanmap {
+            background-color: rgb(230, 233, 233);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="graphsContainer">
+        <div id="Taiwanmap" style="display: inline-block;"></div>
+    </div>
+</body>
+
+
+
+
+<script>
+    let taiwanCenterX = 121.5;
+    let taiwanCenterY = 23.5;
+    let taiwanScale = 6000;
+    const width = 800;
+    const height = 500;
+    let lowDetailData;
+    let highDetailData;
+    let livingfunctionsData;
+    let flagLarge = false;
+    let flagSmall = false;
+
+    const svgContainer = d3.select("#Taiwanmap")
+        .append("svg")
+        .attr("width", width)
+        .attr("height", height)
+        .style("cursor", "grab");
+
+    const svg = svgContainer.append("g");
+    const g = svg.append("g");
+    const zoom = d3.zoom()
+        .on("zoom", handleZoom)
+        .on("start", () => svgContainer.style("cursor", "grabbing"))
+        .on("end", () => svgContainer.style("cursor", "grab"));
+    svgContainer.call(zoom);
+    const initialScale = taiwanScale;
+    const projectmethod = d3.geoMercator().center([taiwanCenterX, taiwanCenterY]).scale(initialScale);
+    const pathGenerator = d3.geoPath().projection(projectmethod);
+
+    d3.json("https://raw.githubusercontent.com/Yang-Shun-Yu/Data-Visualization-Project/master/FinalProject/COUNTY_MOI_1090820.json")
+        .then(jsonData => {
+            lowDetailData = topojson.feature(jsonData, jsonData.objects["COUNTY_MOI_1090820"]);
+            renderTaiwanlowDetail(g);
+            console.log(lowDetailData);
+        });
+
+    d3.json("https://raw.githubusercontent.com/Yang-Shun-Yu/Data-Visualization-Project/master/FinalProject/T.json")
+        .then(jsonData => {
+            highDetailData = topojson.feature(jsonData, jsonData.objects["TOWN_MOI_1120825"]);
+        });
+
+    var projection = d3.geoMercator().center([taiwanCenterX, taiwanCenterY]).scale(taiwanScale);
+
+    function renderTaiwanlowDetail(g) {
+        // console.log(lowDetailData);
+        g.selectAll("path")
+            .data(lowDetailData.features)
+            .enter()
+            .append("path")
+            .attr("d", pathGenerator)
+            .attr("class", "town")
+            .append("title")
+            .text(d => d.properties["COUNTYNAME"]);
+    }
+
+    function renderTaiwanhighDetail(g) {
+        g.selectAll("path")
+            .data(highDetailData.features)
+            .enter()
+            .append("path")
+            .attr("d", pathGenerator)
+            .attr("class", "country")
+            .append("title")
+            .text(d => d.properties["TOWNNAME"]);
+    }
+
+
+    function handleZoom(event) {
+        const currentScale = event.transform.k;
+        const thresholdScale = 5;
+        if (currentScale < thresholdScale && !flagSmall) {
+            svg.selectAll("path").remove();
+            svg.selectAll("circle").remove();
+            renderTaiwanlowDetail(g);
+            flagSmall = true;
+            flagLarge = false;
+        } else if (currentScale >= thresholdScale && !flagLarge) {
+            svg.selectAll("path").remove();
+            svg.selectAll("circle").remove();
+            renderTaiwanhighDetail(g);
+            flagLarge = true;
+            flagSmall = false;
+        }
+        g.attr("transform", event.transform);
+
+
+    }
+
+
+
+
+
+
+
+
+
+</script>
+
+</html>

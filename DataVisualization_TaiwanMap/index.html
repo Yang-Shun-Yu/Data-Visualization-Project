@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="taiwan_map.css">
+    <title>Taiwan Interactive Map</title>
+</head>
+
+<body>
+    <header>
+        <h1>Taiwan Interactive Map</h1>
+    </header>
+    <nav>
+        <div class="nav-item">Housing Prices</div>
+        <div class="nav-item">Population</div>
+        <div class="nav-item">Living Facilities</div>
+    </nav>
+    <section>
+        <div class="cards">
+            <div class="card">
+                <div id="svg1" class="svg small-svg"></div>
+                <div id='tooltip' style='position:absolute;background-color:lightgray;padding:5px;left:200px'></div>
+                <div id="svg2" class="svg small-svg"></div>
+            </div>
+            <div class="card">
+                <svg id="svg3" class="svg big-svg"></svg>
+            </div>
+            <div class="card">
+                <div id="svg4" class="svg small-svg"></div>
+                <div id="svg5" class="svg small-svg"></div>
+            </div>
+    </section>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script src="https://unpkg.com/topojson@3.0.2/dist/topojson.js"></script>
+    <script src="./taiwan_map.js"></script>
+    <script src="./connected_scatter.js"></script>
+    <script>
+        
+        renderTaiwanMap();
+        renderConnectedScatter();
+        
+    </script>
+</body>
+
+</html>
